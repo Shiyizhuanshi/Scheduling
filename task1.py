@@ -2,6 +2,7 @@
 # import networkx as nx
 # import matplotlib.pyplot as plt
 
+import time
 # Define the directed edges
 edges = [
     (0, 30), (1, 0), (2, 7), (3, 2), (4, 1), (5, 15), (6, 5), (7, 6), (8, 7), (9, 8),
@@ -17,59 +18,101 @@ p = [3, 10, 2, 2, 5, 2, 14, 5, 6, 5, 5, 2, 3, 3, 5, 6, 6, 6, 2, 3, 2, 3, 14, 5, 
 d = [172, 82, 18, 61, 93, 71, 217, 295, 290, 287, 253, 307, 279, 73, 355, 34,
 233, 77, 88, 122, 71, 181, 340, 141, 209, 217, 256, 144, 307, 329, 269]
 
+def get_cur_time(scheduled_jobs):
+    cur_time = 0
+    un_scheduled_jobs = []
+    for i in range(31):
+        if i not in scheduled_jobs:
+            un_scheduled_jobs.append(i)
+    for job in un_scheduled_jobs:
+        cur_time += p[job]
+    return cur_time
+
 def get_jobs_with_successor(edges):
     jobs = []
     for edge in edges:
         jobs.append(edge[0])
     return list(set(jobs))
-        
-def get_jobs_without_successor(edges, schedule_jobs_count):
+
+# get jobs without successor and not in schedule_jobs
+def get_jobs_without_successor(edges, schedule_jobs):
     jobs = []
     jobs_with_successor = get_jobs_with_successor(edges)
-    for i in range(31 - schedule_jobs_count):
-        if i not in jobs_with_successor:
+    for i in range(31):
+        if i not in jobs_with_successor and i not in schedule_jobs:
             jobs.append(i)
     return jobs
 
 # when scheduling a job, remove the edge that points to the job
 def schedule_job(index, edges):
-    for i in range(len(edges)):
-        if edges[i][1] == index:
-            edges.pop(i)
-            break
+    for edge in edges:
+        if edge[1] == index:
+            edges.remove(edge)
 
-def get_cur_time(un_schedule_jobs):
-    cur_time = 0
-    for job in un_schedule_jobs:
-        cur_time += p[job]
-    return cur_time
+def cost_function(job, scheduled_jobs):
+    cost = 0
+    cur_time = get_cur_time(scheduled_jobs) + p[job]
+    cost = max(0, cur_time - d[job])
+    return cost
 
+def choose_job_to_schedule(jobs_to_choose, scheduled_jobs):
+    min_cost = 999999
+    job_to_schedule = -1
+    for job in jobs_to_choose:
+        cost = cost_function(job, scheduled_jobs)
+        if cost < min_cost:
+            min_cost = cost
+            job_to_schedule = job
+    return job_to_schedule
 
-# schedule_jobs = []
-# jobs = get_jobs_without_successor(edges, len(schedule_jobs))
+def schedule_last_jobs(edges, scheduled_jobs):
+    last_jobs = []
+    for edge in edges:
+        last_jobs.append(edge[0])
+    if len(last_jobs) == 0:
+        print("All jobs have been scheduled")
+    else:
+        while (len(last_jobs) > 0):
+            jobs_to_choose =[]
+            job = -1
+            print("************************")
+            print("last_jobs:" + str(last_jobs))
+            print("edges" + str(edges))
+            for job in last_jobs:
+                edges_about_job = []
+                successors_count = 0
+                # Find out all the edges that starts from the job
+                for edge in edges:
+                    if edge[0] == job:
+                        edges_about_job.append(edge)
+                # Check if all the successors of the job have been scheduled
+                for edge in edges_about_job:
+                    if edge[1] in scheduled_jobs:
+                        successors_count += 1
+                # If all the successors have been scheduled, add the job to jobs_to_choose
+                if successors_count == len(edges_about_job):
+                    jobs_to_choose.append(job)
+            print("jobs_to_choose:" + str(jobs_to_choose))
+            job = choose_job_to_schedule(jobs_to_choose, scheduled_jobs)
+            print("job to schedule:" + str(job))
+            last_jobs.remove(job)
+            scheduled_jobs.append(job)
+            for edge in edges:
+                if edge[0] == job:
+                    edges.remove(edge)
 
-# for job in jobs:
-#     print(p[job])
-#     schedule_job(job, edges)
-#     schedule_jobs.append(job)
-#     print(get_jobs_without_successor(edges, len(schedule_jobs)))
-
-
-
-
-
-# # Create a directed graph
-# G = nx.DiGraph()
-# G.add_edges_from(edges)
-
-# # Plot the DAG
-# plt.figure(figsize=(12, 8))
-# pos = nx.spring_layout(G)  # Position the nodes
-
-# # Draw nodes and edges
-# nx.draw(G, pos, with_labels=True, node_size=500, node_color="skyblue", font_size=10, font_weight="bold", arrows=True)
-# nx.draw_networkx_edges(G, pos, edgelist=edges, arrowstyle='->', arrowsize=15)
-
-# # Display the plot
-# plt.title("Directed Acyclic Graph (DAG)")
-# plt.show()
+schedule_jobs = []
+while(len(schedule_jobs) != 31):
+    print("====================================")
+    print("lengt of schedule_jobs:" + str(len(schedule_jobs)))
+    jobs = get_jobs_without_successor(edges, schedule_jobs)
+    print("jobs without successor:" + str(jobs))
+    if (len(jobs) == 0):
+        schedule_last_jobs(edges, schedule_jobs)
+    else:
+        print("schedule_jobs:" + str(jobs[0]))
+        job = choose_job_to_schedule(jobs, schedule_jobs)
+        schedule_job(job, edges)
+        schedule_jobs.append(job)
+    print("schedule_jobs:" + str(schedule_jobs))
+    print("edges" + str(edges))
