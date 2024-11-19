@@ -138,5 +138,4 @@ def calculate_best_schedule(egdes_of_jobs):
     return scheduled_jobs
 
 scheduled_jobs = calculate_best_schedule(edges)
-print("Total cost:" + str(calculate_total_cost(scheduled_jobs)))
 print("Max cost:" + str(calculate_max_cost(scheduled_jobs)))
