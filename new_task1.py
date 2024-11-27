@@ -1,8 +1,3 @@
-# pip3 install networkx matplotlib
-# import networkx as nx
-# import matplotlib.pyplot as plt
-
-import time
 # Define the directed edges
 edges = [
     (0, 30), (1, 0), (2, 7), (3, 2), (4, 1), (5, 15), (6, 5), (7, 6), (8, 7), (9, 8),
@@ -29,7 +24,7 @@ def get_jobs_without_successor(edges, schedule_jobs):
     jobs = []
     jobs_with_successor = get_jobs_with_successor(edges)
     for i in range(31):
-        if i not in jobs_with_successor and i not in schedule_jobs:
+        if  i not in schedule_jobs:
             jobs.append(i)
     return jobs
 
