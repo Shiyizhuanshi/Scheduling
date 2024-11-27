@@ -1,4 +1,3 @@
-# Import of libraries
 import random
 
 def calculate_total_cost(schedule_jobs, p, d):
@@ -55,31 +54,59 @@ def get_initial_solution(edges):
         schedule.append(job)
     return schedule
 
-def get_neighbors(schedule, tabu_list, edges):
+
+def validate_schedule(schedule, edges):
+    # This function validates the schedule based on the workflow constraints
+
+    # Create a mapping from task to its position in the schedule
+    position = {task: idx for idx, task in enumerate(schedule)}
+
+    # Check each dependency
+    for u, v in edges:
+        if u not in position or v not in position:
+            raise ValueError(f"Task '{u}' or '{v}' not found in the schedule.")
+        
+        # Validate that u comes before v in the schedule
+        if position[u] >= position[v]:
+            return False
+        
+    return True
+
+
+def get_neighbors(schedule, tabu_list, edges, p, d):
     # This function returns the neighbors of the current schedule
-    # return a list of neighbors, the jobs swapped and the new schedule
 
     n = len(schedule)
+    # Return None if there are no jobs to swap
+    if n < 2 and len(tabu_list):
+        return None, None, None  # No adjacent pairs to swap
+    
+
+    if len(tabu_list) == 0:
+        start_index = 0
+    else:
+        last_interchange = list(tabu_list)[-1]  # Get the last interchange
+        # Get the start index from the last interchange
+        for i in range(len(schedule)):
+            if schedule[i] == last_interchange[1]:
+                start_index = i
+                break
     neighbors = []
     swapped_jobs = []
     new_schedules = []
-
-    # Create a dictionary to represent workflow dependencies for fast checks
-    dependency_map = {job: [] for job in schedule}
-    for before, after in edges:
-        dependency_map[after].append(before)
     
-    for _ in range(1000):  # Limit iterations to avoid infinite loops
-        # Randomly select two distinct jobs to swap
-        i, j = random.sample(range(n), 2)
-        job1, job2 = schedule[i], schedule[j]
-        
+    # Iterate cyclically over adjacent pairs
+    for offset in range(len - 1):  # There are n-1 adjacent pairs
+        i = (start_index + offset) % (len - 1)  # Wrap around to ensure cyclic iteration
+        j = i + 1
+        job1, job2 = schedule[i], schedule[i + 1]
+
         # Ensure the swap is not tabu
         if (job1, job2) not in tabu_list and (job2, job1) not in tabu_list:
             # Check if swapping jobs violates workflow constraints
             new_schedule = schedule.copy()
             new_schedule[i], new_schedule[j] = new_schedule[j], new_schedule[i]
-            if not violates_workflow(new_schedule, dependency_map):
+            if validate_schedule(new_schedule, edges):
                 return new_schedule, job1, job2
 
     # If no valid neighbor found, return None
@@ -97,42 +124,44 @@ def violates_workflow(schedule, dependency_map):
     return False
 
 
-def tabu_search(x0, L, gamma, K, g, neighbors_fn, jobs, workflow):
-    k = 0
-    T = set()  # Set to track pairs of jobs
-    xk = x0
-    gbest = g(jobs, x0)  # Best value of g found so far
-    xbest = x0     # Best schedule corresponding to gbest
+def tabu_search(L, gamma, K, goal_func, neighbors_func, edges, p, d):
+    iteration = 0
+    tabu_list = set()  # Set to track pairs of jobs
+    local_schedule = get_initial_solution(edges)
+    gbest = goal_func(local_schedule, p, d)  # Best value of g found so far
+    best_schedule = local_schedule     # Best schedule corresponding to gbest
     
-    while k <= K:
-        print(f'Iteration {k}: g={gbest}')
-        print(f'Schedule: {xk}')
-        print(f'Tabu list: {T}')
-        print("**********")
+    while iteration <= K:
+        print("--------------------")
+        print(f'Iteration {iteration}: best_g={gbest}')
+        print(f'Local schedule: {local_schedule}')
+        print(f'Tabu list: {tabu_list}')
         while True:
-            y, i, j = neighbors_fn(xk, T, workflow)  # Select next neighbor and jobs swapped
-            if y is None:  # No new solution can be found
-                return xbest
+            neighbor_schedule, i, j = neighbors_func(local_schedule, tabu_list, edges, p, d)  # Select next neighbor and jobs swapped
+            if neighbor_schedule is None:  # Run out of neighbors
+                return best_schedule      # Then stop the search
             
-            delta = g(jobs, xk) - g(jobs, y)
-            if (delta > -gamma and (i, j) not in T) or g(jobs, y) < gbest:
+            delta = goal_func(local_schedule, p, d) - goal_func(neighbor_schedule, p, d)
+            if (delta > -gamma and (i, j) not in tabu_list) or goal_func(neighbor_schedule, p, d) < gbest:
                 break
         
-        xk = y
-        T.add((i, j))
+        # Update the current schedule
+        local_schedule = neighbor_schedule
+        # Add the swapped jobs to the tabu list
+        tabu_list.add((i, j))
         
         # Remove pairs older than L iterations
-        if len(T) > L:
-            T = set(list(T)[-L:])
+        if len(tabu_list) > L:
+            tabu_list = set(list(tabu_list)[-L:])
         
-        g_y = g(jobs, xk)
-        if g_y < gbest:
-            gbest = g_y
-            xbest = xk
+        g_neighbor = goal_func(neighbor_schedule, p, d)
+        if g_neighbor < gbest:
+            gbest = g_neighbor
+            best_schedule = neighbor_schedule
         
-        k += 1
+        iteration += 1
     
-    return xbest
+    return best_schedule
 
 # Define the directed edges
 edges = [
