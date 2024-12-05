@@ -1,3 +1,4 @@
+import sys
 def calculate_total_cost(schedule_jobs, p, d):
     total_cost = 0
     cur_time = 0
@@ -100,6 +101,7 @@ p = [3, 10, 2, 2, 5, 2, 14, 5, 6, 5, 5, 2, 3, 3, 5, 6, 6, 6, 2, 3, 2, 3, 14, 5, 
 d = [172, 82, 18, 61, 93, 71, 217, 295, 290, 287, 253, 307, 279, 73, 355, 34,
 233, 77, 88, 122, 71, 181, 340, 141, 209, 217, 256, 144, 307, 329, 269]
 
+print("This will print to the console.")
 schedule = find_lcl_schedule(edges, p, d)
 print("Final optimal schedule: " + str(schedule))
 print("Max cost:" + str(calculate_max_cost(schedule, p, d)))

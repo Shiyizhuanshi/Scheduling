@@ -1,0 +1,65 @@
+Schedule in iteration 0:[]
+Max cost:-999999
+Schedule in iteration 1:[30]
+Max cost:0
+Schedule in iteration 2:[0, 30]
+Max cost:0
+Schedule in iteration 3:[10, 0, 30]
+Max cost:0
+Schedule in iteration 4:[14, 10, 0, 30]
+Max cost:0
+Schedule in iteration 5:[1, 14, 10, 0, 30]
+Max cost:0
+Schedule in iteration 6:[4, 1, 14, 10, 0, 30]
+Max cost:0
+Schedule in iteration 7:[11, 4, 1, 14, 10, 0, 30]
+Max cost:0
+Schedule in iteration 8:[12, 11, 4, 1, 14, 10, 0, 30]
+Max cost:0
+Schedule in iteration 9:[23, 12, 11, 4, 1, 14, 10, 0, 30]
+Max cost:0
+Schedule in iteration 10:[24, 23, 12, 11, 4, 1, 14, 10, 0, 30]
+Max cost:0
+Schedule in iteration 11:[25, 24, 23, 12, 11, 4, 1, 14, 10, 0, 30]
+Max cost:0
+Schedule in iteration 12:[26, 25, 24, 23, 12, 11, 4, 1, 14, 10, 0, 30]
+Max cost:0
+Schedule in iteration 13:[27, 26, 25, 24, 23, 12, 11, 4, 1, 14, 10, 0, 30]
+Max cost:0
+Schedule in iteration 14:[28, 27, 26, 25, 24, 23, 12, 11, 4, 1, 14, 10, 0, 30]
+Max cost:0
+Schedule in iteration 15:[13, 28, 27, 26, 25, 24, 23, 12, 11, 4, 1, 14, 10, 0, 30]
+Max cost:0
+Schedule in iteration 16:[15, 13, 28, 27, 26, 25, 24, 23, 12, 11, 4, 1, 14, 10, 0, 30]
+Max cost:0
+Schedule in iteration 17:[16, 15, 13, 28, 27, 26, 25, 24, 23, 12, 11, 4, 1, 14, 10, 0, 30]
+Max cost:0
+Schedule in iteration 18:[17, 16, 15, 13, 28, 27, 26, 25, 24, 23, 12, 11, 4, 1, 14, 10, 0, 30]
+Max cost:3
+Schedule in iteration 19:[18, 17, 16, 15, 13, 28, 27, 26, 25, 24, 23, 12, 11, 4, 1, 14, 10, 0, 30]
+Max cost:5
+Schedule in iteration 20:[19, 18, 17, 16, 15, 13, 28, 27, 26, 25, 24, 23, 12, 11, 4, 1, 14, 10, 0, 30]
+Max cost:8
+Schedule in iteration 21:[20, 19, 18, 17, 16, 15, 13, 28, 27, 26, 25, 24, 23, 12, 11, 4, 1, 14, 10, 0, 30]
+Max cost:10
+Schedule in iteration 22:[21, 20, 19, 18, 17, 16, 15, 13, 28, 27, 26, 25, 24, 23, 12, 11, 4, 1, 14, 10, 0, 30]
+Max cost:13
+Schedule in iteration 23:[22, 21, 20, 19, 18, 17, 16, 15, 13, 28, 27, 26, 25, 24, 23, 12, 11, 4, 1, 14, 10, 0, 30]
+Max cost:27
+Schedule in iteration 24:[5, 22, 21, 20, 19, 18, 17, 16, 15, 13, 28, 27, 26, 25, 24, 23, 12, 11, 4, 1, 14, 10, 0, 30]
+Max cost:29
+Schedule in iteration 25:[6, 5, 22, 21, 20, 19, 18, 17, 16, 15, 13, 28, 27, 26, 25, 24, 23, 12, 11, 4, 1, 14, 10, 0, 30]
+Max cost:43
+Schedule in iteration 26:[7, 6, 5, 22, 21, 20, 19, 18, 17, 16, 15, 13, 28, 27, 26, 25, 24, 23, 12, 11, 4, 1, 14, 10, 0, 30]
+Max cost:48
+Schedule in iteration 27:[8, 7, 6, 5, 22, 21, 20, 19, 18, 17, 16, 15, 13, 28, 27, 26, 25, 24, 23, 12, 11, 4, 1, 14, 10, 0, 30]
+Max cost:54
+Schedule in iteration 28:[9, 8, 7, 6, 5, 22, 21, 20, 19, 18, 17, 16, 15, 13, 28, 27, 26, 25, 24, 23, 12, 11, 4, 1, 14, 10, 0, 30]
+Max cost:59
+Schedule in iteration 29:[2, 9, 8, 7, 6, 5, 22, 21, 20, 19, 18, 17, 16, 15, 13, 28, 27, 26, 25, 24, 23, 12, 11, 4, 1, 14, 10, 0, 30]
+Max cost:61
+Schedule in iteration 30:[3, 2, 9, 8, 7, 6, 5, 22, 21, 20, 19, 18, 17, 16, 15, 13, 28, 27, 26, 25, 24, 23, 12, 11, 4, 1, 14, 10, 0, 30]
+Max cost:63
+Final optimal schedule: [29, 3, 2, 9, 8, 7, 6, 5, 22, 21, 20, 19, 18, 17, 16, 15, 13, 28, 27, 26, 25, 24, 23, 12, 11, 4, 1, 14, 10, 0, 30]
+Max cost:65
+Total cost:165

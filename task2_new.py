@@ -1,4 +1,7 @@
 import random
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import numpy as np
 
 def calculate_total_cost(schedule_jobs, p, d):
     total_cost = 0
@@ -52,8 +55,8 @@ def get_initial_solution(edges):
         # Randomly choose the job to schedule
         job = random.choice(available_jobs)
         schedule.append(job)
+    schedule.reverse()
     return schedule
-
 
 def validate_schedule(schedule, edges):
     # This function validates the schedule based on the workflow constraints
@@ -70,98 +73,98 @@ def validate_schedule(schedule, edges):
         if position[u] >= position[v]:
             return False
         
-    return True
+    return True # All dependencies satisfied
 
 
-def get_neighbors(schedule, tabu_list, edges, p, d):
+def get_neighbors(schedule, tabu_list, edges):
     # This function returns the neighbors of the current schedule
-
     n = len(schedule)
+    neighbors = []
     # Return None if there are no jobs to swap
-    if n < 2 and len(tabu_list):
-        return None, None, None  # No adjacent pairs to swap
-    
+    if n <= 2 and len(tabu_list):
+        return []  # No adjacent pairs to swap
 
     if len(tabu_list) == 0:
         start_index = 0
     else:
-        last_interchange = list(tabu_list)[-1]  # Get the last interchange
+        last_interchange = tabu_list[-1]  # Get the last interchange
         # Get the start index from the last interchange
         for i in range(len(schedule)):
             if schedule[i] == last_interchange[1]:
                 start_index = i
                 break
-    neighbors = []
-    swapped_jobs = []
-    new_schedules = []
-    
     # Iterate cyclically over adjacent pairs
-    for offset in range(len - 1):  # There are n-1 adjacent pairs
-        i = (start_index + offset) % (len - 1)  # Wrap around to ensure cyclic iteration
+    for offset in range(n - 1):  # There are n-1 adjacent pairs
+        i = (start_index + offset) % (n - 1)  # Wrap around to ensure cyclic iteration
         j = i + 1
-        job1, job2 = schedule[i], schedule[i + 1]
-
+        job1, job2 = schedule[i], schedule[j]
         # Ensure the swap is not tabu
         if (job1, job2) not in tabu_list and (job2, job1) not in tabu_list:
             # Check if swapping jobs violates workflow constraints
             new_schedule = schedule.copy()
             new_schedule[i], new_schedule[j] = new_schedule[j], new_schedule[i]
+            # print("New schedule: ", new_schedule)
             if validate_schedule(new_schedule, edges):
-                return new_schedule, job1, job2
-
-    # If no valid neighbor found, return None
-    return None, None, None
-
-
-def violates_workflow(schedule, dependency_map):
-    # Map job indices to positions in the schedule
-    position_map = {job: pos for pos, job in enumerate(schedule)}
-    
-    for job, dependencies in dependency_map.items():
-        for dependency in dependencies:
-            if position_map[dependency] > position_map[job]:
-                return True  # Dependency violated
-    return False
+                neighbors.append((new_schedule, job1, job2))
+    # Return all neighbors
+    return neighbors
 
 
-def tabu_search(L, gamma, K, goal_func, neighbors_func, edges, p, d):
+def tabu_search(L, gamma, K, goal_func, neighbors_func, edges, p, d, test_schedule=None):
     iteration = 0
-    tabu_list = set()  # Set to track pairs of jobs
-    local_schedule = get_initial_solution(edges)
+    tabu_list = []  # List to track pairs of jobs
+    if test_schedule is None: # If no test schedule is provided
+        local_schedule = get_initial_solution(edges) # Get the initial solution randomly
+    else:
+        local_schedule = test_schedule
     gbest = goal_func(local_schedule, p, d)  # Best value of g found so far
     best_schedule = local_schedule     # Best schedule corresponding to gbest
+    neighbor_to_choose = None
     
     while iteration <= K:
-        print("--------------------")
+        print("-------------------------------------------------------------------")
         print(f'Iteration {iteration}: best_g={gbest}')
         print(f'Local schedule: {local_schedule}')
         print(f'Tabu list: {tabu_list}')
-        while True:
-            neighbor_schedule, i, j = neighbors_func(local_schedule, tabu_list, edges, p, d)  # Select next neighbor and jobs swapped
-            if neighbor_schedule is None:  # Run out of neighbors
-                return best_schedule      # Then stop the search
-            
-            delta = goal_func(local_schedule, p, d) - goal_func(neighbor_schedule, p, d)
-            if (delta > -gamma and (i, j) not in tabu_list) or goal_func(neighbor_schedule, p, d) < gbest:
-                break
+
+        # Get the neighbors of the current schedule
+        neighbors = neighbors_func(local_schedule, tabu_list, edges)  # Select next neighbor and jobs swapped
+
+        if len(neighbors) == 0:  # Run out of neighbors
+            return best_schedule # Then stop the search
         
+        print("Candidats length: ", len(neighbors))
+        count = 0
+        # Iterate over neighbors, select the first one that satisfies tabu conditions
+        for neighbor_schedule, i, j in neighbors:
+            count += 1
+            diff = goal_func(local_schedule, p, d) - goal_func(neighbor_schedule, p, d)
+            # print("Difference: " + str(diff))
+            # print("local g: " + str(goal_func(local_schedule, p, d)))
+            print("Candidate " + str(count) + ": " + str(neighbor_schedule) + " with g: " + str(goal_func(neighbor_schedule, p, d)))
+            if (diff > -gamma and (i, j) not in tabu_list) or goal_func(neighbor_schedule, p, d) < gbest:
+                neighbor_to_choose = neighbor_schedule
+                print("Chosen candidate: " + str(count))
+                break
+            
+                
         # Update the current schedule
-        local_schedule = neighbor_schedule
+        local_schedule = neighbor_to_choose
         # Add the swapped jobs to the tabu list
-        tabu_list.add((i, j))
+        tabu_list.append((i, j))
         
         # Remove pairs older than L iterations
         if len(tabu_list) > L:
-            tabu_list = set(list(tabu_list)[-L:])
+            tabu_list.pop(0)
         
-        g_neighbor = goal_func(neighbor_schedule, p, d)
+        g_neighbor = goal_func(neighbor_to_choose, p, d)
         if g_neighbor < gbest:
             gbest = g_neighbor
-            best_schedule = neighbor_schedule
-        
+            best_schedule = neighbor_to_choose
+        print("Best g: " + str(gbest))
         iteration += 1
     
-    return best_schedule
+    return best_schedule, gbest
 
 # Define the directed edges
 edges = [
@@ -178,4 +181,21 @@ p = [3, 10, 2, 2, 5, 2, 14, 5, 6, 5, 5, 2, 3, 3, 5, 6, 6, 6, 2, 3, 2, 3, 14, 5, 
 d = [172, 82, 18, 61, 93, 71, 217, 295, 290, 287, 253, 307, 279, 73, 355, 34,
 233, 77, 88, 122, 71, 181, 340, 141, 209, 217, 256, 144, 307, 329, 269]
 
-print(get_initial_solution(edges))
+test_schedule = [29, 28, 22, 9, 8, 13, 12, 11, 3, 19, 21, 2, 26, 27, 7, 6, 18, 20, 25, 17, 24, 16, 14, 5, 23, 15, 4, 10, 1, 0, 30]
+
+# Run tabu search
+L = 5
+gamma = 5
+K = 500
+
+tabu_search(5, 1, 2000, calculate_total_cost, get_neighbors, edges, p, d, test_schedule=test_schedule)
+
+# schedule_10 = tabu_search(L, gamma, 10, calculate_total_cost, get_neighbors, edges, p, d, test_schedule=test_schedule)
+# schedule_100 = tabu_search(L, gamma, 100, calculate_total_cost, get_neighbors, edges, p, d, test_schedule=test_schedule)
+# schedule_1000 = tabu_search(L, gamma, 1000, calculate_total_cost, get_neighbors, edges, p, d, test_schedule=test_schedule)
+# print("-------------------------------------------------------------------")
+# print("Tabu search schdule for K = 10 " + str(schedule_10), " with total cost: " + str(calculate_total_cost(schedule_10, p, d)))
+# print("Tabu search schdule for K = 100 " + str(schedule_100), " with total cost: " + str(calculate_total_cost(schedule_100, p, d)))
+# print("Tabu search schdule for K = 1000 " + str(schedule_1000), " with total cost: " + str(calculate_total_cost(schedule_1000, p, d)))
+
+
